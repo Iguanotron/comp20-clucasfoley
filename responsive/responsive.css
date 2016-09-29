@@ -3,22 +3,22 @@
     height: 312px;
     background-image: url(homer.jpg);
 }
-@media (min-device-width: 1201px) {
+@media (min-width: 1201px) {
 	.homer {
 		background-position: top left;
 	}
 }
-@media (min-device-width: 801px) and (max-device-width: 1200px) {
+@media (min-width: 801px) and (max-width: 1200px) {
 	.homer {
 		background-position: top right;
 	}
 }
-@media (min-device-width: 401px) and (max-device-width: 800px) {
+@media (min-width: 401px) and (max-width: 800px) {
 	.homer {
 		background-position: bottom left;
 	}
 }
-@media (max-device-width: 400px) {
+@media (max-width: 400px) {
 	.homer {
 		background-position: bottom right;
 	}
