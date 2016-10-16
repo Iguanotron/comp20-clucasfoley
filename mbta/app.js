@@ -139,7 +139,7 @@ function getNearestStation() {
 			nearestDistance = thisDistance;
 		}
 	}
-	return "The nearest station, " + nearestStation + ", is " + nearestDistance + " miles away (as the crow flies)";
+	return nearestDistance + " miles from " + nearestStation + " (as the crow flies)"
 }
 
 function toRad(x) {
@@ -155,7 +155,8 @@ function myDistanceFrom(position) {
 	var lng2 = toRad(position.lng());
 	var dLat = lat2 - lat1;
 	var dLng = lng2 - lng1;
-	var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+	var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+		Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
 	var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 	return R * c;
 }

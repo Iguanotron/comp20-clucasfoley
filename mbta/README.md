@@ -13,4 +13,4 @@ http://stackoverflow.com/questions/14560999/using-the-haversine-formula-in-javas
 The T icon used for this app is a recolored version of the T icon from Google Maps.
 
 ###Hours Spent
-Approximately 2
+Approximately 3.5
