@@ -99,9 +99,14 @@ var redLinePaths = [
 ];
 
 function setStationMarker(stationName) {
+	var markerImage = {
+		url: "t-icon.png",
+		anchor: new google.maps.Point(11, 11) // center the icon
+	}
 	var marker = new google.maps.Marker({
 		position: stations[stationName],
-		title: stationName
+		title: stationName,
+		icon: markerImage
 	});
 	marker.setMap(map);
 	google.maps.event.addListener(marker, 'click', function() {

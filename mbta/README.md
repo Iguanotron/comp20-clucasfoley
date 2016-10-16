@@ -10,5 +10,7 @@ http://www.movable-type.co.uk/scripts/latlong.html
 and
 http://stackoverflow.com/questions/14560999/using-the-haversine-formula-in-javascript
 
+The T icon used for this app is a recolored version of the T icon from Google Maps.
+
 ###Hours Spent
 Approximately 2
