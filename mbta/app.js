@@ -38,6 +38,8 @@ function init() {
 	map = new google.maps.Map(document.getElementById('map'), options);
 	locateMe();
 	renderStations();
+	updateTrips();
+	setInterval(updateTrips, 30000); // Every 30 sec
 }
 
 var stations = {
@@ -98,6 +100,10 @@ var redLinePaths = [
 	]
 ];
 
+var apiUnavailable = true;
+var trips = [];
+var request = new XMLHttpRequest();
+
 function setStationMarker(stationName) {
 	var markerImage = {
 		url: "t-icon.png",
@@ -125,7 +131,38 @@ function renderStations() {
 }
 
 function getSchedule(stationName) {
-	return stationName + ": No schedule yet!"
+	if (apiUnavailable) {
+		return "<h3>No data available at this time. Try again soon!</h3>";
+	}
+	var schedule = {
+		"Braintree": [],
+		"Ashmont": [],
+		"Alewife": []
+	};
+	for (var i = 0; i < trips.length; i++) {
+		for (var j = 0; j < trips[i].Predictions.length; j++) {
+			if (trips[i].Predictions[j].Stop === stationName) {
+				schedule[trips[i].Destination].push(trips[i].Position.Timestamp + trips[i].Predictions[j].Seconds);
+			}
+		}
+	}
+	var currentDate = new Date();
+	var currentTime = currentDate.getTime() / 1000;
+	var output = "<h1>" + stationName + "</h1>" +
+		"As of " + currentDate.toTimeString() + "<br/>";
+
+	for (destination in schedule) {
+		if (schedule[destination].length > 0) {
+			output += "<h4>Trains to " + destination + ":</h4>";
+			for (var i = 0; i < schedule[destination].length; i++) {
+				var arrivalTime = new Date(schedule[destination][i]);
+				output += "Arriving in " + Math.floor((schedule[destination][i] - currentTime) / 60) + " minutes<br/>";
+			}
+		} else {
+			output += "<h4>No trains to " + destination + "</h4>";
+		}
+	}
+	return output;
 }
 
 function getNearestStation() {
@@ -139,7 +176,10 @@ function getNearestStation() {
 			nearestDistance = thisDistance;
 		}
 	}
-	return nearestDistance + " miles from " + nearestStation + " (as the crow flies)"
+	//return nearestDistance + " miles from " + nearestStation + " (as the crow flies)";
+	return "<h3>You are here!</h3>" +
+		"<p>Nearest T station (as the crow flies):</p>" + 
+		"<h1 style=\"text-align: center\">" + nearestStation + "</h1>";
 }
 
 function toRad(x) {
@@ -174,4 +214,19 @@ function linkStations(stationPath) {
 		strokeWeight: 3
 	});
 	line.setMap(map);
+}
+
+function updateTrips() {
+	request.open('get', 'https://rocky-taiga-26352.herokuapp.com/redline.json', true);
+	request.onreadystatechange = function () {
+		if (this.readyState == 4) {
+			var data = JSON.parse(this.responseText);
+			if (data.TripList) { // valid data was received
+				apiUnavailable = true; // while trips is being updated
+				trips = data.TripList.Trips;
+				apiUnavailable = false;
+			}
+		}
+	}
+	request.send();
 }

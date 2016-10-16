@@ -6,3 +6,7 @@ html, body {
 #map {
 	height: 100%;
 }
+/* infowindow styling */
+.gm-style-iw {
+	text-align: center;
+}
