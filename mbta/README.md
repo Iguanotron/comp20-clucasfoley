@@ -16,4 +16,4 @@ and
 The T icon used for this app is a recolored version of the T icon from Google Maps.
 
 ###Hours Spent
-Approximately 5.5
+Approximately 6

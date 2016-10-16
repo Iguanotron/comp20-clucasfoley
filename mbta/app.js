@@ -30,7 +30,7 @@ function locateMe() {
 			});
 		});
 	} else {
-		alert('Geolocation not supported by your browser :\'(');
+		alert('Geolocation is not supported by your browser :\'(');
 	}
 }
 
@@ -100,7 +100,7 @@ var redLinePaths = [
 	]
 ];
 
-var apiUnavailable = true;
+var noTrainData = true;
 var trips = [];
 var request = new XMLHttpRequest();
 
@@ -131,7 +131,7 @@ function renderStations() {
 }
 
 function getSchedule(stationName) {
-	if (apiUnavailable) {
+	if (noTrainData) {
 		return "<h3>No data available at this time. Try again soon!</h3>";
 	}
 	var schedule = {
@@ -149,18 +149,22 @@ function getSchedule(stationName) {
 	var currentDate = new Date();
 	var currentTime = currentDate.getTime() / 1000;
 	var output = "<h1>" + stationName + "</h1>" +
-		"As of " + currentDate.toTimeString() + "<br/>";
-
+		"Arrival times as of " + currentDate.toTimeString() + "<br/>";
+	var noTrains = true;
 	for (destination in schedule) {
 		if (schedule[destination].length > 0) {
+			noTrains = false;
 			output += "<h4>Trains to " + destination + ":</h4>";
 			for (var i = 0; i < schedule[destination].length; i++) {
-				var arrivalTime = new Date(schedule[destination][i]);
-				output += "Arriving in " + Math.floor((schedule[destination][i] - currentTime) / 60) + " minutes<br/>";
+				var arrivalTime = Math.floor((schedule[destination][i] - currentTime) / 60);
+				if (arrivalTime >= 0) { // Trains may have arrived since the last API access
+					output += "Arriving in " + arrivalTime + " minutes<br/>";
+				}
 			}
-		} else {
-			output += "<h4>No trains to " + destination + "</h4>";
 		}
+	}
+	if (noTrains) {
+		output += "<h4>No trains approaching</h4>";
 	}
 	return output;
 }
@@ -176,7 +180,6 @@ function getNearestStation() {
 			nearestDistance = thisDistance;
 		}
 	}
-	//return nearestDistance + " miles from " + nearestStation + " (as the crow flies)";
 	return "<h3>You are here!</h3>" +
 		"<p>Nearest T station (as the crow flies):</p>" + 
 		"<h1 style=\"text-align: center\">" + nearestStation + "</h1>";
@@ -219,12 +222,11 @@ function linkStations(stationPath) {
 function updateTrips() {
 	request.open('get', 'https://rocky-taiga-26352.herokuapp.com/redline.json', true);
 	request.onreadystatechange = function () {
-		if (this.readyState == 4) {
+		if (this.readyState === 4 && this.status === 200) {
 			var data = JSON.parse(this.responseText);
 			if (data.TripList) { // valid data was received
-				apiUnavailable = true; // while trips is being updated
 				trips = data.TripList.Trips;
-				apiUnavailable = false;
+				noTrainData = false;
 			}
 		}
 	}
