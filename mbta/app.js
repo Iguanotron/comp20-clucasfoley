@@ -2,12 +2,11 @@ var map;
 
 var myLat = 0;
 var myLng = 0;
-var myMarker;
 var me;
 
 var infowindow = new google.maps.InfoWindow();
 var options = {
-	zoom: 10,
+	zoom: 13,
 	center: me,
 	mapTypeId: google.maps.MapTypeId.ROADMAP
 };
@@ -19,15 +18,26 @@ function locateMe() {
 			myLng = position.coords.longitude;
 			me = new google.maps.LatLng(myLat, myLng);
 			map.panTo(me);
-			myMarker = new google.maps.Marker({
+			var myMarker = new google.maps.Marker({
 				position: me,
-				title: "My location"
+				title: "My Location"
 			});
 			myMarker.setMap(map);
+			var nearestData = getNearestStation();
 			google.maps.event.addListener(myMarker, 'click', function() {
-				infowindow.setContent(getNearestStation());
+				infowindow.setContent("<h3>You are here!</h3>Nearest T station (as the crow flies):<br/>" + 
+									  "<h1 style=\"text-align: center\">" + nearestData.stationName + "</h1>" +
+									  nearestData.distance + " miles away");
 				infowindow.open(map, myMarker);
 			});
+			var line = new google.maps.Polyline({
+				path: [me, stations[nearestData.stationName]],
+				geodesic: true,
+				strokeColor: '#00FFFF',
+				strokeOpacity: 1.0,
+				strokeWeight: 3
+			});
+			line.setMap(map);
 		});
 	} else {
 		alert('Geolocation is not supported by your browser :\'(');
@@ -134,31 +144,58 @@ function getSchedule(stationName) {
 	if (noTrainData) {
 		return "<h3>No data available at this time. Try again soon!</h3>";
 	}
-	var schedule = {
-		"Braintree": [],
-		"Ashmont": [],
-		"Alewife": []
-	};
-	for (var i = 0; i < trips.length; i++) {
-		for (var j = 0; j < trips[i].Predictions.length; j++) {
-			if (trips[i].Predictions[j].Stop === stationName) {
-				schedule[trips[i].Destination].push(trips[i].Position.Timestamp + trips[i].Predictions[j].Seconds);
-			}
-		}
-	}
+	// var schedule = {
+	// 	"Braintree": [],
+	// 	"Ashmont": [],
+	// 	"Alewife": []
+	// };
+	// for (var i = 0; i < trips.length; i++) {
+	// 	for (var j = 0; j < trips[i].Predictions.length; j++) {
+	// 		if (trips[i].Predictions[j].Stop === stationName) {
+	// 			schedule[trips[i].Destination].push(trips[i].Position.Timestamp + trips[i].Predictions[j].Seconds);
+	// 		}
+	// 	}
+	// }
+	// var currentDate = new Date();
+	// var currentTime = currentDate.getTime() / 1000;
+	// var output = "<h1>" + stationName + "</h1>" +
+	// 	"Arrival times as of " + currentDate.toTimeString() + "<br/>";
+
+	// var noTrains = true;
+	// for (destination in schedule) {
+	// 	if (schedule[destination].length > 0) {
+	// 		noTrains = false;
+	// 		output += "<h4>Trains to " + destination + ":</h4>";
+	// 		for (var i = 0; i < schedule[destination].length; i++) {
+	// 			var arrivalTime = Math.floor((schedule[destination][i] - currentTime) / 60);
+	// 			if (arrivalTime >= 0) { // Trains may have arrived since the last API access
+	// 				output += "Arriving in " + arrivalTime + " minutes<br/>";
+	// 			}
+	// 		}
+	// 	}
+	// }
+	// if (noTrains) {
+	// 	output += "<h4>No trains approaching</h4>";
+	// }
+	// return output;
+
 	var currentDate = new Date();
 	var currentTime = currentDate.getTime() / 1000;
 	var output = "<h1>" + stationName + "</h1>" +
 		"Arrival times as of " + currentDate.toTimeString() + "<br/>";
+
 	var noTrains = true;
-	for (destination in schedule) {
-		if (schedule[destination].length > 0) {
-			noTrains = false;
-			output += "<h4>Trains to " + destination + ":</h4>";
-			for (var i = 0; i < schedule[destination].length; i++) {
-				var arrivalTime = Math.floor((schedule[destination][i] - currentTime) / 60);
-				if (arrivalTime >= 0) { // Trains may have arrived since the last API access
-					output += "Arriving in " + arrivalTime + " minutes<br/>";
+	for (var i = 0; i < trips.length; i++) {
+		if (!trips[i].Position || !trips[i].Predictions) { /* bad data */
+			continue;
+		}
+		for (var j = 0; j < trips[i].Predictions.length; j++) {
+			if (trips[i].Predictions[j].Stop === stationName) {
+				var arrivalTime = Math.floor((trips[i].Position.Timestamp +
+					trips[i].Predictions[j].Seconds - currentTime) / 60); /* in minutes */
+				if (arrivalTime >= 0) {
+					noTrains = false;
+					output += "A train to " + trips[i].Destination + " arrives in " + arrivalTime + " minutes<br/>";
 				}
 			}
 		}
@@ -180,9 +217,7 @@ function getNearestStation() {
 			nearestDistance = thisDistance;
 		}
 	}
-	return "<h3>You are here!</h3>" +
-		"<p>Nearest T station (as the crow flies):</p>" + 
-		"<h1 style=\"text-align: center\">" + nearestStation + "</h1>";
+	return {stationName: nearestStation, distance: nearestDistance};
 }
 
 function toRad(x) {

@@ -1,5 +1,5 @@
 # Assignment 2 - Closest MBTA Station
-## 2016-10-16
+## 2016-10-19
 
 ###Completion
 The assignment has been completed in its entirety as per the specification at <https://tuftsdev.github.io/WebProgramming/assignments/a2.html>.
