@@ -144,41 +144,7 @@ function getSchedule(stationName) {
 	if (noTrainData) {
 		return "<h3>No data available at this time. Try again soon!</h3>";
 	}
-	// var schedule = {
-	// 	"Braintree": [],
-	// 	"Ashmont": [],
-	// 	"Alewife": []
-	// };
-	// for (var i = 0; i < trips.length; i++) {
-	// 	for (var j = 0; j < trips[i].Predictions.length; j++) {
-	// 		if (trips[i].Predictions[j].Stop === stationName) {
-	// 			schedule[trips[i].Destination].push(trips[i].Position.Timestamp + trips[i].Predictions[j].Seconds);
-	// 		}
-	// 	}
-	// }
-	// var currentDate = new Date();
-	// var currentTime = currentDate.getTime() / 1000;
-	// var output = "<h1>" + stationName + "</h1>" +
-	// 	"Arrival times as of " + currentDate.toTimeString() + "<br/>";
-
-	// var noTrains = true;
-	// for (destination in schedule) {
-	// 	if (schedule[destination].length > 0) {
-	// 		noTrains = false;
-	// 		output += "<h4>Trains to " + destination + ":</h4>";
-	// 		for (var i = 0; i < schedule[destination].length; i++) {
-	// 			var arrivalTime = Math.floor((schedule[destination][i] - currentTime) / 60);
-	// 			if (arrivalTime >= 0) { // Trains may have arrived since the last API access
-	// 				output += "Arriving in " + arrivalTime + " minutes<br/>";
-	// 			}
-	// 		}
-	// 	}
-	// }
-	// if (noTrains) {
-	// 	output += "<h4>No trains approaching</h4>";
-	// }
-	// return output;
-
+	var timesByDest = {};
 	var currentDate = new Date();
 	var currentTime = currentDate.getTime() / 1000;
 	var output = "<h1>" + stationName + "</h1>" +
@@ -195,13 +161,23 @@ function getSchedule(stationName) {
 					trips[i].Predictions[j].Seconds - currentTime) / 60); /* in minutes */
 				if (arrivalTime >= 0) {
 					noTrains = false;
-					output += "A train to " + trips[i].Destination + " arrives in " + arrivalTime + " minutes<br/>";
+					dest = trips[i].Destination;
+					if (!timesByDest[dest]) {
+						timesByDest[dest] = [];
+					}
+					timesByDest[trips[i].Destination].push(arrivalTime);
 				}
 			}
 		}
 	}
+	for (dest in timesByDest) {
+		output += "<h3>Trains to " + dest + "</h3>";
+		for (var i = 0; i < timesByDest[dest].length; ++i) {
+			output += "Arriving in " + timesByDest[dest][i] + " minutes<br/>";
+		}
+	}
 	if (noTrains) {
-		output += "<h4>No trains approaching</h4>";
+		return output + "<h4>No trains approaching</h4>";
 	}
 	return output;
 }
