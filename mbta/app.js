@@ -231,7 +231,7 @@ function linkStations(stationPath) {
 }
 
 function updateTrips() {
-	request.open('get', 'https://rocky-taiga-26352.herokuapp.com/redline.json', true);
+	request.open('get', 'https://aqueous-mesa-13360.herokuapp.com/redline.json', true);
 	request.onreadystatechange = function () {
 		if (this.readyState === 4 && this.status === 200) {
 			var data = JSON.parse(this.responseText);
