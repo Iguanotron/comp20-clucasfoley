@@ -85,12 +85,15 @@ GameManager.prototype.actuate = function () {
   if (this.over) {
     // Prompt the user for their name, and send their score and grid to the server
     // Added by Caleb on 2016-11-11
-    var xhr = new XMLHttpRequest();
-    xhr.open('post', 'https://aqueous-mesa-13360.herokuapp.com/submit.json', true);
-    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    xhr.send('username=' + encodeURIComponent(window.prompt('Game over! Your score is ' + this.score + '. Enter Username:')) +
-      '&score=' + encodeURIComponent(this.score) +
-      '&grid=' + encodeURIComponent(JSON.stringify(this.grid)));
+    var username = window.prompt('Game over! Your score is ' + this.score + '. Enter Username:');
+    if (username) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('post', 'https://aqueous-mesa-13360.herokuapp.com/submit.json', true);
+      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+      xhr.send('username=' + encodeURIComponent(username) +
+        '&score=' + encodeURIComponent(this.score) +
+        '&grid=' + encodeURIComponent(JSON.stringify(this.grid)));
+    }
     // Clear the game state
     this.storageManager.clearGameState();
   } else {
