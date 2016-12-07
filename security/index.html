@@ -1,0 +1,71 @@
+<!doctype HTML>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<title>Assignment 4 - Security</title>
+</head>
+<body>
+	<h1>Security and Privacy Assessment of the 2048 Gamee Center</h1>
+
+	<h2>Introduction</h2>
+	<p>The following comprise the 2048 Game Center web application:
+		<ul>
+			<li>A <code>POST /</code> submit.json route that accepts a client's score, username, and end-game grid from a (modified) 2048 game client</li>
+			<li>A <code>GET /</code> scores.json route that sends back all records with a given username, provided in a query parameter</li>
+			<li>A <code>GET /</code> route that displays all client-submitted scores, along with usernames and timestamps, sorted in decreasing order</li>
+		</ul>
+	</p>
+	<p>My role was to test <a href="https://serene-wildwood-36147.herokuapp.com/">Pulkit Jain's 2048 Game Center application</a> for security vulnerabilities.</p>
+	<h2>Methodology</h2>
+	<p>To test the application, I used <code>curl</code> to send <code>POST</code> requests to the <code>/submit.json</code> route. A typical invocation is:<pre><code>curl -d @data.json -H "Content-Type: application/json" https://serene-wildwood-36147.herokuapp.com/submit.json</code></pre></p>
+	<h2>Abstract of Findings</h2>
+	<p>The following issues were found in the 2048 Game Center Application:</p>
+	<ul>
+		<li>Arbitrary fields can be added to submitted records, hiding in the database since they're not visible on the main page. The required <code>_id</code> field can also be modified by the client</li>
+		<li>Arbitrary JavaScript code can be injected into the <code>username</code> field, giving an attacker full control over the main page of the application</li>
+		<li>MongoDB query parameters are exposed on the <code>/scores.json</code> route, letting a client read other users' scores</li>
+	</ul>
+	<h2>Issues Found</h2>
+	<h3>Database injection of arbitrary fields on <code>POST /submit.json</code></h3>
+	<ul>
+		<li>Issue: Fields other than the <code>username</code>, <code>score</code>, and grid are stored in the database</li>
+		<li>Locations affected: <code>POST /submit.json</code> is vulnerable to these injections which can only be seen on <code>GET /scores.json</code></li>
+		<li>Severity: High. This vulnerability allows a client to sneakily inject copyrighted material in the database, to be retrieved at a later time by accessing <code>GET /scores.json</code>. Of course, storing copyrighted material in a database is illegal, so this is a very serious issue.</li>
+		<li>Description: When data is submitted to <code>/submit.json</code>, all fields are copied into the database, not only the required fields. This could be used to modify important fields, including MongoDB's <code>_id</code> field.<br/><img src="fields.png" height="300px"/></li>
+		<li>Proof of vulnerability: Here, I submitted the complete text of Act I, Scene I of Macbeth by WIlliam Shakespeare. It is visible on <code>/scores.json?username=billy</code>, but not on the <code>/</code> route, since it is in a field called <code>macbeth</code>. Note that the copyright on Mr. Shakespeare's work has expired, but an attacker might not be so considerate. In addition, the <code>_id</code> field has been changed to a nonstandard value.<br/><img src="billy.png" height="300px"/></li>
+		<li>Resolution: Only the required fields should be stored in the database. Fixed server code would read similarly to this:<pre><code>newDocument = {
+	username:   request.body.username,
+	score:      request.body.score,
+	grid:       request.body.grid,
+	created_at: timestamp
+};
+db.scores.insert(newDocument);</code></pre></li>
+	</ul>
+	<h3>Cross-site scripting on <code>POST /submit.json</code></h3>
+	<ul>
+		<li>Issue: Arbitrary JavaScript and/or HTML can be submitted to <code>/submit.json</code>, to be executed on the <code>/</code> route.</li>
+		<li>Locations affected: <code>POST /submit.json</code> is vulnerable to injection attacks, and the injected data is displayed on the <code>GET /</code> route</li>
+		<li>Severity: High. This enables an attacker to control the display of the main page of the application, potentially redirecting to something malicious or manipulating the document object model in a malicious way.</li>
+		<li>Description: Submitted data is not sanitized. An arbitrary text string, for example an HTML <code>&lt;script&gt;</code> tag, can be inserted into the database in the <code>username</code> field, and then displayed on the main page, allowing arbitrary JavaScript code to be executed. This is evident in the lack of input sanitization on the server:<br/><img src="fields.png" height="300px"/></li>
+		<li>Proof of vulnerability: Here, I submitted as my username the following string:<pre><code>&lt;script&gt;var letters = '0123456789ABCDEF';
+window.setInterval(function(){
+	var color = '#';
+	for (var i = 0; i &lt; 6; i++ ) {
+		color += letters[Math.floor(Math.random() * 16)];
+	}
+	document.body.style.backgroundColor = color;
+}, 100);&lt;/script&gt;</code></pre> This code causes the background color of the HTML body to flash random colors every tenth of a second. For viewers with epilepsy, this poses a real danger. In addition, you can see that videos and images can also be injected. These elements can be used to display advertisements, which are a net drain on the client-base's money.<br/><video src="trip.mp4" autoplay loop height="300px"/><br/></li>
+		<li>Resolution: There are two main ways to solve this issue. One way would be to escape any special characters on the <code>GET /</code> before it's sent to the client. Some templating engines have this feature built-in. Another, easier way would be to remove all non-alphanumeric characters from the submitted fields. Fixed server code would read similarly to this, before <code>username</code> is stored:<pre><code>username = request.body.username.replace(/[^\w\s]/gi, '');</code></pre>In addition, a hard cap should be put on the length of a submitted username; anything longer than about 30 characters is almost definitely not within the intended scope of the application; any such records should be discarded.</li>
+	</ul>
+	<h3>Exposed MongoDB query selectors on <code>GET /scores.json</code></h3>
+	<ul>
+		<li>Issue: MongoDB's query selectors are exposed in URLs on the <code>/scores.json GET</code> route.</li>
+		<li>Locations affected: <code>GET /scores.json</code> is vulnerable to query selector attacks</li>
+		<li>Severity: Low. Since all relevant data is displayed on the main page anyway, query selector attacks wouldn't tell an attacker anything they don't already know.</li>
+		<li>Description: MongoDB supports "query selectors" to sort results in a database more selectively. For example, <code>db.scores.find({username: {"$ne":"test"}})</code> gets all records with usernames other than <code>test</code>. In this application, these selectors can be submitted in GET URLs as well, allowing access beyond the single-username data that the page is intended to deliver.</li>
+		<li>Proof of vulnerability: Here, I requested all scores for users other than <cod>test</code> using the following URL in a web browser:<pre><code>http://serene-wildwood-36147.herokuapp.com/scores.json?username[$ne]=test</code></pre>The response I recieved contained the records for <code>billy</code>, which is a violation of privacy:<br/><img src="nottest.png" height="300px"/></li>
+		<li>Resolution: To solve this problem, the query fields must be sanitized better. A way to fix this, still using MongoDB, is to use the <code>mongo-santize</code> package for NodeJS to remove $ signs and similar characters from queries.</li>
+	</ul>
+	<h2>Conclusion</h2>
+	<p>In conclusion, this application has many security flaws that need to be addressed. Switching away from MongoDB would be ideal, since two of the major issues are specific to MongoDB; however, the costs associated with switching technologies are very high. Fixing the arbitrary-field injection issue is extremely easy and should be done first. In order to avoid cross-site scripting, a templating engine with built-in escaping could be used; this has the additional benefit of removing the need for explicit string manipulation on the server.</p>
+</html>
