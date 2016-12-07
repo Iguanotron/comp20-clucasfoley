@@ -1,11 +1,13 @@
 <!doctype HTML>
 <html>
 <head>
-	<meta charset="utf-8"/>
+        <meta charset="utf-8"/>
+        <link rel="stylesheet" href="style.css"/>
 	<title>Assignment 4 - Security</title>
 </head>
 <body>
-	<h1>Security and Privacy Assessment of the 2048 Gamee Center</h1>
+<div id="content">
+	<h1>Security and Privacy Assessment of the 2048 Game Center</h1>
 
 	<h2>Introduction</h2>
 	<p>The following comprise the 2048 Game Center web application:
@@ -67,5 +69,7 @@ window.setInterval(function(){
 		<li>Resolution: To solve this problem, the query fields must be sanitized better. A way to fix this, still using MongoDB, is to use the <code>mongo-santize</code> package for NodeJS to remove $ signs and similar characters from queries.</li>
 	</ul>
 	<h2>Conclusion</h2>
-	<p>In conclusion, this application has many security flaws that need to be addressed. Switching away from MongoDB would be ideal, since two of the major issues are specific to MongoDB; however, the costs associated with switching technologies are very high. Fixing the arbitrary-field injection issue is extremely easy and should be done first. In order to avoid cross-site scripting, a templating engine with built-in escaping could be used; this has the additional benefit of removing the need for explicit string manipulation on the server.</p>
+<p>In conclusion, this application has many security flaws that need to be addressed. Switching away from MongoDB would be ideal, since two of the major issues are specific to MongoDB; however, the costs associated with switching technologies are very high. Fixing the arbitrary-field injection issue is extremely easy and should be done first. In order to avoid cross-site scripting, a templating engine with built-in escaping could be used; this has the additional benefit of removing the need for explicit string manipulation on the server.</p>
+</body>
+</div>
 </html>
