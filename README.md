@@ -25,10 +25,12 @@ use them appropriately and effectively.
 Never trust user input!
 
 Specifically, never trust anything sent from the client (end-user). Examples:
+
 1. Client-side validation can be disabled or bypassed using browser addons
    and/or the JavaScript console, so this should always be done on the
    server. Example: a user can easily get around a length restriction on a
    form field.
+   
 2. A user can inject code into a web page if their input isn't sanitized.
    Example: If a user enters their name into a game's high score chart and it
    has an html tag in it, that is rendered on everyone's client who views the
