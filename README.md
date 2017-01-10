@@ -5,6 +5,15 @@
 This repository contains various lab assignments and projects from Comp
 20 - Web Programming, all bundled together for easy perusal.
 
+###Projects
+[Find The Way!](http://find-the-way.herokuapp.com/) (final project)
+[MBTA Tracker](https://iguanotron.github.io/comp20-clucasfoley/mbta)
+[Closed Captioning](https://iguanotron.github.io/comp20-clucasfoley/movie_annotation)
+[Captain's Log](https://iguanotron.github.io/comp20-clucasfoley/captainslog)
+[Responsive Image](https://iguanotron.github.io/comp20-clucasfoley/responsive)
+
+##Reflection
+
 ###Favorite Assignment
 I enjoyed working on the MBTA tracker the most. The specifcation was
 very general, which left a lot of room to be creative with the
