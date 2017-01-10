@@ -7,9 +7,13 @@ This repository contains various lab assignments and projects from Comp
 
 ###Projects
 [Find The Way!](http://find-the-way.herokuapp.com/) (final project)
+
 [MBTA Tracker](https://iguanotron.github.io/comp20-clucasfoley/mbta)
+
 [Closed Captioning](https://iguanotron.github.io/comp20-clucasfoley/movie_annotation)
+
 [Captain's Log](https://iguanotron.github.io/comp20-clucasfoley/captainslog)
+
 [Responsive Image](https://iguanotron.github.io/comp20-clucasfoley/responsive)
 
 ##Reflection
